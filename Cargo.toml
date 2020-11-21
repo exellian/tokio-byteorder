@@ -15,7 +15,7 @@ license = "Unlicense OR MIT"
 
 [badges]
 azure-devops = { project = "jonhoo/jonhoo", pipeline = "tokio-byteorder", build = "12" }
-codecov = { repository = "jonhoo/tokio-byteorder", branch = "master", service = "github" }
+codecov = { repository = "exellian/tokio-byteorder", branch = "master", service = "github" }
 
 
 [dependencies]
