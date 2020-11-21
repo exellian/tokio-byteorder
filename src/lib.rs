@@ -126,7 +126,7 @@ macro_rules! reader {
 
                 while this.read < $bytes as u8 {
 
-                    let read_buf = ReadBuf::new(&mut this.buf[this.read as usize..]);
+                    let mut read_buf = ReadBuf::new(&mut this.buf[this.read as usize..]);
 
                     this.read += match src
                         .as_mut()
@@ -163,15 +163,22 @@ macro_rules! reader8 {
             fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
                 let src = unsafe { self.map_unchecked_mut(|t| &mut t.0) };
                 let mut buf = [0; 1];
-                match src.poll_read(cx, &mut buf[..]) {
+                let mut read_buf = ReadBuf::new(&mut buf[..]);
+                match src.poll_read(cx, &mut read_buf) {
                     Poll::Pending => Poll::Pending,
                     Poll::Ready(Err(e)) => Poll::Ready(Err(e.into())),
-                    Poll::Ready(Ok(0)) => Poll::Ready(Err(io::Error::new(
-                        io::ErrorKind::UnexpectedEof,
-                        "failed to fill whole buffer",
-                    ))),
-                    Poll::Ready(Ok(1)) => Poll::Ready(Ok(buf[0] as $ty)),
-                    Poll::Ready(Ok(_)) => unreachable!(),
+                    Poll::Ready(Ok(())) => {
+                        return if read_buf.filled().is_empty() {
+                            Poll::Ready(Err(io::Error::new(
+                                io::ErrorKind::UnexpectedEof,
+                                "failed to fill whole buffer",
+                            )))
+                        } else if read_buf.filled().len() == 1 {
+                            Poll::Ready(Ok(buf[0] as $ty))
+                        } else {
+                            unreachable!()
+                        }
+                    }
                 }
             }
         }
