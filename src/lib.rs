@@ -79,6 +79,7 @@ use core::mem::size_of;
 use core::pin::Pin;
 use core::task::{Context, Poll};
 use tokio::io;
+use tokio::io::ReadBuf;
 
 pub use byteorder::{BigEndian, LittleEndian, NativeEndian, NetworkEndian};
 
@@ -124,19 +125,24 @@ macro_rules! reader {
                 let mut src = unsafe { Pin::new_unchecked(&mut this.src) };
 
                 while this.read < $bytes as u8 {
+
+                    let read_buf = ReadBuf::new(&mut this.buf[this.read as usize..]);
+
                     this.read += match src
                         .as_mut()
-                        .poll_read(cx, &mut this.buf[this.read as usize..])
+                        .poll_read(cx, &mut read_buf)
                     {
                         Poll::Pending => return Poll::Pending,
                         Poll::Ready(Err(e)) => return Poll::Ready(Err(e.into())),
-                        Poll::Ready(Ok(0)) => {
-                            return Poll::Ready(Err(io::Error::new(
-                                io::ErrorKind::UnexpectedEof,
-                                "failed to fill whole buffer",
-                            )));
+                        Poll::Ready(Ok(())) => {
+                            if read_buf.filled().is_empty() {
+                                return Poll::Ready(Err(io::Error::new(
+                                    io::ErrorKind::UnexpectedEof,
+                                    "failed to fill whole buffer",
+                                )));
+                            }
+                            read_buf.filled().len() as u8
                         }
-                        Poll::Ready(Ok(n)) => n as u8,
                     };
                 }
                 Poll::Ready(Ok(T::$reader(&this.buf[..])))
