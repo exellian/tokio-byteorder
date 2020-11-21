@@ -1,7 +1,4 @@
-[![Crates.io](https://img.shields.io/crates/v/tokio-byteorder.svg)](https://crates.io/crates/tokio-byteorder)
 [![Documentation](https://docs.rs/tokio-byteorder/badge.svg)](https://docs.rs/tokio-byteorder/)
-[![Build Status](https://dev.azure.com/jonhoo/jonhoo/_apis/build/status/tokio-byteorder?branchName=master)](https://dev.azure.com/jonhoo/jonhoo/_build/latest?definitionId=12&branchName=master)
-[![Codecov](https://codecov.io/github/jonhoo/tokio-byteorder/coverage.svg?branch=master)](https://codecov.io/gh/jonhoo/tokio-byteorder)
 [![Dependency status](https://deps.rs/repo/github/exellian/tokio-byteorder/status.svg)](https://deps.rs/repo/github/jonhoo/tokio-byteorder)
 
 This crate provides convenience methods for encoding and decoding numbers in
